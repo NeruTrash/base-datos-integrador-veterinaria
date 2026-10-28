@@ -138,9 +138,7 @@ retrospectiva.
 
 ## Repositorio
 
-Repositorio público: `https://github.com/<usuario>/base-datos-integrador-veterinaria`
-
-> Reemplazar `<usuario>` por el nombre de usuario real de GitHub antes de la entrega.
+Repositorio público: `https://github.com/NeruTrash/base-datos-integrador-veterinaria`
 
 ## Autores
 
