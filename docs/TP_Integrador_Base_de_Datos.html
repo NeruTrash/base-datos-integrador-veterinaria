@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto Integrador - Base de Datos I - Veterinaria</title>
+<meta name="author" content="Máximo Aceituno, Federico Calafiore">
+<meta name="description" content="Sistema de gestión para una veterinaria - MySQL, Python y peewee">
+<style>
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 10.3pt;
+  line-height: 1.55;
+  color: #1e293b;
+}
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+@page :first { margin: 0; }
+
+/* Portada */
+.cover { page-break-after: always; }
+.cover-band {
+  margin: 0;
+  padding: 28mm 18mm 14mm 18mm;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 58%, #0f766e 100%);
+  color: #ffffff;
+}
+.cover-kicker { font-size: 8.2pt; letter-spacing: 2.2px; text-transform: uppercase; opacity: .92; }
+.cover-title {
+  font-size: 29pt; line-height: 1.08; margin: 7px 0 6px;
+  font-weight: 700; color: #ffffff; border: none; padding: 0;
+  page-break-before: avoid;
+}
+.cover-sub { font-size: 13.5pt; font-weight: 300; opacity: .96; }
+.cover-tag {
+  display: inline-block; margin-top: 11px; padding: 3px 12px;
+  border: 1px solid rgba(255,255,255,.55); border-radius: 20px;
+  font-size: 8.4pt; letter-spacing: .4px;
+}
+.cover-body { padding: 11mm 16mm 0 16mm; }
+.cover-meta { width: 100%; border-collapse: collapse; font-size: 9.8pt; }
+.cover-meta td { border: none; border-bottom: 1px solid #e2e8f0; padding: 6px 3px; }
+.cover-meta td:first-child {
+  width: 40mm; color: #64748b; font-size: 8.2pt;
+  text-transform: uppercase; letter-spacing: .7px;
+}
+.cover-integrants {
+  margin-top: 9mm; padding: 6mm 7mm; background: #f8fafc;
+  border: 1px solid #e2e8f0; border-left: 5px solid #b45309; border-radius: 4px;
+}
+.cover-integrants .label {
+  font-size: 8.2pt; color: #64748b; text-transform: uppercase;
+  letter-spacing: .9px; margin-bottom: 5px;
+}
+.cover-integrants .name { font-size: 13pt; font-weight: 600; color: #1e3a8a; line-height: 1.7; }
+.cover-foot {
+  margin-top: 10mm; padding-top: 4mm; border-top: 1px solid #e2e8f0;
+  font-size: 8.6pt; color: #64748b; display: flex; justify-content: space-between;
+}
+
+/* Títulos */
+h1 {
+  font-size: 18.5pt; color: #1e3a8a; line-height: 1.2;
+  margin: 0 0 10px; padding-bottom: 5px;
+  border-bottom: 2.5px solid #1e3a8a;
+  page-break-before: always; page-break-after: avoid;
+}
+h1.nobreak { page-break-before: avoid; }
+h1 .num { color: #b45309; margin-right: 8px; }
+h2 {
+  font-size: 13.2pt; color: #0f766e; margin: 17px 0 6px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 10.8pt; color: #1e3a8a; margin: 13px 0 4px;
+  page-break-after: avoid;
+}
+p { margin: 0 0 7px; text-align: justify; }
+ul, ol { margin: 0 0 8px 18px; padding: 0; }
+li { margin-bottom: 3px; text-align: justify; }
+strong { color: #0f172a; }
+
+/* Tablas */
+table { width: 100%; border-collapse: collapse; margin: 4px 0 11px; font-size: 8.5pt; }
+thead { display: table-header-group; }
+th {
+  background: #1e3a8a; color: #ffffff; text-align: left;
+  padding: 5px 6px; border: 1px solid #1e3a8a; font-weight: 600;
+}
+td { padding: 4px 6px; border: 1px solid #cbd5e1; vertical-align: top; }
+tbody tr:nth-child(even) { background: #f8fafc; }
+tr { page-break-inside: avoid; }
+.tcap {
+  font-size: 8.4pt; font-weight: 700; color: #1e3a8a;
+  margin: 12px 0 3px; page-break-after: avoid;
+}
+.tcap + table { margin-top: 0; }
+
+.badge {
+  display: inline-block; padding: 0 4px; border-radius: 3px;
+  font-size: 7pt; font-weight: 700; letter-spacing: .2px;
+  vertical-align: 1px;
+}
+.pk { background: #fef3c7; color: #92400e; }
+.fk { background: #dbeafe; color: #1e40af; }
+.uq { background: #f1f5f9; color: #475569; }
+.nn { background: #fee2e2; color: #991b1b; }
+.ok { background: #dcfce7; color: #166534; }
+.no { background: #fee2e2; color: #991b1b; }
+
+/* Código */
+code {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: 8.5pt; background: #f1f5f9; padding: 0 3px; border-radius: 2px;
+  color: #0f172a;
+}
+pre {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: 7.75pt; line-height: 1.42;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a;
+  padding: 8px 10px; margin: 4px 0 10px; white-space: pre-wrap;
+  page-break-inside: avoid; color: #0f172a; border-radius: 2px;
+}
+pre.out { border-left-color: #0f766e; font-size: 7.2pt; background: #f0fdfa; }
+.ccap {
+  font-size: 8pt; font-weight: 700; color: #475569; margin: 10px 0 3px;
+  page-break-after: avoid;
+}
+.ccap + pre { margin-top: 0; }
+
+/* Figuras */
+figure { margin: 8px 0 12px; page-break-inside: avoid; text-align: center; }
+figure img { width: 100%; border: 1px solid #e2e8f0; border-radius: 3px; }
+figcaption {
+  font-size: 8.2pt; color: #475569; margin-top: 4px; font-style: italic;
+}
+figure.narrow img { width: 88%; }
+
+/* Callouts */
+.callout {
+  border-left: 4px solid #3b82f6; background: #eff6ff;
+  padding: 7px 11px; margin: 7px 0 11px; font-size: 9.2pt;
+  page-break-inside: avoid; border-radius: 2px;
+}
+.callout.warn { border-left-color: #f59e0b; background: #fffbeb; }
+.callout.ok { border-left-color: #10b981; background: #ecfdf5; }
+.callout .t { font-weight: 700; display: block; margin-bottom: 2px; color: #0f172a; }
+
+/* Índice */
+.toc { page-break-after: always; }
+.toc h1 { page-break-before: avoid; }
+.toc ol { list-style: none; margin: 4px 0 0; padding: 0; }
+.toc li {
+  border-bottom: 1px dotted #cbd5e1; padding: 5px 0;
+  font-size: 9.8pt; margin: 0;
+}
+.toc li a { color: #1e293b; text-decoration: none; }
+.toc li .n {
+  color: #b45309; font-weight: 700; display: inline-block;
+  width: 26px;
+}
+.toc li.sub { padding-left: 26px; font-size: 9pt; color: #475569; border-bottom: none; }
+.toc li.sub a { color: #475569; }
+
+/* Varios */
+.kv { font-size: 9.2pt; }
+.muted { color: #64748b; }
+.small { font-size: 8.8pt; }
+.tree {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 8pt; line-height: 1.5; background: #f8fafc;
+  border: 1px solid #e2e8f0; padding: 9px 12px; border-radius: 3px;
+  white-space: pre; page-break-inside: avoid;
+}
+.checklist { list-style: none; margin-left: 0; }
+.checklist li { margin-bottom: 4px; }
+.checklist li::before { content: "☐  "; color: #1e3a8a; font-weight: 700; }
+.refs li { font-size: 8.9pt; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-band">
+    <div class="cover-kicker">Tecnicatura Superior en Desarrollo de Software</div>
+    <div class="cover-title">Sistema de gestión<br>para una veterinaria</div>
+    <div class="cover-sub">Proyecto Integrador · Base de Datos I</div>
+    <div class="cover-tag">MySQL · Python · peewee · GitHub</div>
+  </div>
+  <div class="cover-body">
+    <table class="cover-meta">
+      <tr><td>Carrera</td><td>Tecnicatura Superior en Desarrollo de Software</td></tr>
+      <tr><td>Espacio curricular</td><td>Base de Datos I</td></tr>
+      <tr><td>Docente</td><td>Juan Caballero Gallar</td></tr>
+      <tr><td>Ciclo lectivo</td><td>2026</td></tr>
+      <tr><td>Entrega</td><td>28 de octubre de 2026</td></tr>
+      <tr><td>Motor de base de datos</td><td>MySQL 26.7 · InnoDB · utf8mb4</td></tr>
+      <tr><td>Repositorio</td><td>github.com/NeruTrash/base-datos-integrador-veterinaria</td></tr>
+    </table>
+    <div class="cover-integrants">
+      <div class="label">Integrantes</div>
+      <div class="name">Máximo Aceituno</div>
+      <div class="name">Federico Calafiore</div>
+    </div>
+    <div class="cover-foot">
+      <span>Base de datos <strong>veterinaria_integrador</strong></span>
+      <span>Documentación técnica · 2026</span>
+    </div>
+  </div>
+</section>
+
+<section class="toc">
+  <h1 class="nobreak">Índice</h1>
+  <ol>
+    <li><a href="#s1"><span class="n">1</span> Presentación del proyecto</a></li>
+    <li class="sub"><a href="#s1-1">1.1 Tema y objetivos</a></li>
+    <li class="sub"><a href="#s1-2">1.2 Datos académicos</a></li>
+    <li class="sub"><a href="#s1-3">1.3 Alcance y artefactos</a></li>
+    <li><a href="#s2"><span class="n">2</span> Stack tecnológico</a></li>
+    <li><a href="#s3"><span class="n">3</span> Análisis y diseño</a></li>
+    <li class="sub"><a href="#s3-1">3.1 Requerimientos funcionales</a></li>
+    <li class="sub"><a href="#s3-2">3.2 Reglas de negocio</a></li>
+    <li class="sub"><a href="#s3-3">3.3 Modelo conceptual (Chen)</a></li>
+    <li class="sub"><a href="#s3-4">3.4 Modelo lógico (pata de gallo)</a></li>
+    <li class="sub"><a href="#s3-5">3.5 Normalización</a></li>
+    <li class="sub"><a href="#s3-6">3.6 Modelo físico (EER)</a></li>
+    <li><a href="#s4"><span class="n">4</span> Diccionario de datos</a></li>
+    <li class="sub"><a href="#s4-1">4.1 Convenciones</a></li>
+    <li class="sub"><a href="#s4-2">4.2 Tablas</a></li>
+    <li class="sub"><a href="#s4-3">4.3 Vistas</a></li>
+    <li class="sub"><a href="#s4-4">4.4 Usuarios y permisos</a></li>
+    <li><a href="#s5"><span class="n">5</span> Implementación SQL</a></li>
+    <li class="sub"><a href="#s5-1">5.1 Estructura del script</a></li>
+    <li class="sub"><a href="#s5-2">5.2 DDL y triggers</a></li>
+    <li class="sub"><a href="#s5-3">5.3 DCL y seguridad</a></li>
+    <li class="sub"><a href="#s5-4">5.4 DML, transacciones y funciones nativas</a></li>
+    <li class="sub"><a href="#s5-5">5.5 Consultas destacadas</a></li>
+    <li><a href="#s6"><span class="n">6</span> Aplicación Python con peewee</a></li>
+    <li><a href="#s7"><span class="n">7</span> Pruebas y validación</a></li>
+    <li><a href="#s8"><span class="n">8</span> Repositorio GitHub</a></li>
+    <li><a href="#s9"><span class="n">9</span> Retrospectiva y conclusiones</a></li>
+    <li><a href="#anexo"><span class="n">A</span> Anexo: ejecución y checklist</a></li>
+  </ol>
+</section>
+
+<h1 id="s1"><span class="num">1</span>Presentación del proyecto</h1>
+
+<h2 id="s1-1">1.1 Tema y objetivos</h2>
+<p>
+El presente trabajo integra los contenidos de las Unidades I a IV de <strong>Base de Datos I</strong>
+en el diseño y la implementación de un sistema de gestión para una veterinaria. El dominio cubre
+la administración de propietarios, mascotas, profesionales, consultas, diagnósticos, tratamientos,
+vacunaciones, cirugías e internaciones, con trazabilidad del historial clínico de cada paciente.
+</p>
+<p>
+El <strong>objetivo general</strong> es diseñar, normalizar e implementar una base de datos relacional
+en MySQL que soporte la operación de la veterinaria, junto con una capa de acceso programático en
+Python mediante el ORM <em>peewee</em>, aplicando DDL, DCL, DML, transacciones, vistas y control de
+permisos por rol.
+</p>
+<p>Los <strong>objetivos específicos</strong> son:</p>
+<ul>
+  <li>Modelar el dominio con notación Chen y con notación pata de gallo.</li>
+  <li>Normalizar el esquema hasta la Tercera Forma Normal (3FN).</li>
+  <li>Implementar el DDL con integridad referencial, restricciones CHECK, índices y triggers.</li>
+  <li>Poblar la base con datos coherentes y reproducibles.</li>
+  <li>Definir vistas de consulta y usuarios con permisos según el principio de mínimo privilegio.</li>
+  <li>Implementar un CRUD en Python sobre dos tablas relacionadas, con transacciones atómicas.</li>
+  <li>Documentar las decisiones de diseño y versionar todos los artefactos en GitHub.</li>
+</ul>
+
+<h2 id="s1-2">1.2 Datos académicos</h2>
+<div class="tcap">Tabla 1. Datos académicos del trabajo.</div><table class=""><thead><tr><th>Campo</th><th>Detalle</th></tr></thead><tbody><tr><td>Carrera</td><td>Tecnicatura Superior en Desarrollo de Software</td></tr>
+<tr><td>Espacio curricular</td><td>Base de Datos I</td></tr>
+<tr><td>Docente</td><td>Juan Caballero Gallar</td></tr>
+<tr><td>Ciclo lectivo</td><td>2026</td></tr>
+<tr><td>Integrantes</td><td>Máximo Aceituno · Federico Calafiore</td></tr>
+<tr><td>Fecha de entrega</td><td>28 de octubre de 2026</td></tr>
+<tr><td>Motor</td><td>MySQL Community Server 26.7 (InnoDB, utf8mb4)</td></tr>
+<tr><td>Base de datos</td><td><code>veterinaria_integrador</code></td></tr></tbody></table>
+
+<h2 id="s1-3">1.3 Alcance y artefactos</h2>
+<p>
+El alcance funcional comprende once tablas, cinco vistas, cinco usuarios de base de datos y un CRUD
+programático sobre las tablas <code>propietario</code> y <code>mascota</code>. Quedan fuera del alcance
+la facturación, la gestión de stock, la asignación de turnos y una interfaz web; se mencionan en la
+retrospectiva como líneas de trabajo futuro.
+</p>
+<p>
+Los artefactos entregados son el script SQL (810 líneas), la aplicación Python (497
+líneas), los cuatro diagramas en <code>img/</code>, este informe en PDF y el repositorio público con
+todo el código versionado.
+</p>
+
+
+<h1 id="s2"><span class="num">2</span>Stack tecnológico</h1>
+<p>
+La elección de las herramientas prioriza tres criterios: que el motor cumpla con las exigencias de la
+cátedra, que la capa de acceso sea liviana y legible, y que los diagramas puedan regenerarse a partir
+de una fuente reproducible en lugar de editarse a mano.
+</p>
+<div class="tcap">Tabla 2. Componentes del stack tecnológico.</div><table class=""><thead><tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Uso en el proyecto</th></tr></thead><tbody><tr><td>Motor de base de datos</td><td>MySQL Community Server</td><td>26.7.0</td><td>DDL, DML, DCL, vistas, triggers y transacciones InnoDB.</td></tr>
+<tr><td>Cliente SQL</td><td>MySQL Workbench</td><td>8.0 CE</td><td>Ejecución, exploración y verificación de scripts.</td></tr>
+<tr><td>Lenguaje</td><td>Python</td><td>3.12</td><td>Capa de acceso y CRUD.</td></tr>
+<tr><td>ORM</td><td>peewee</td><td>3.17+</td><td>Modelos, consultas y transacciones atómicas.</td></tr>
+<tr><td>Driver</td><td>PyMySQL</td><td>1.1+</td><td>Conector Python–MySQL.</td></tr>
+<tr><td>Cifrado</td><td>cryptography</td><td>42+</td><td>Soporte de <code>caching_sha2_password</code>.</td></tr>
+<tr><td>Diagramas</td><td>Graphviz + @viz-js/viz + Sharp</td><td>14 / 0.34</td><td>Generación de Chen, pata de gallo y EER.</td></tr>
+<tr><td>Documento</td><td>HTML5 + CSS3 + Microsoft Edge</td><td>—</td><td>Maquetación e impresión a PDF.</td></tr>
+<tr><td>Versionado</td><td>Git + GitHub</td><td>—</td><td>Repositorio público y control de cambios.</td></tr></tbody></table>
+
+<h2>2.1 Justificación de las decisiones</h2>
+<p>
+<strong>MySQL</strong> es el motor requerido por la cátedra y ofrece las garantías necesarias para el
+dominio: transacciones ACID, claves foráneas, restricciones CHECK, vistas, triggers y un sistema de
+privilegios granular. El motor InnoDB permite además definir reglas de borrado diferenciadas
+(<code>RESTRICT</code> y <code>CASCADE</code>) según la naturaleza del dato.
+</p>
+<p>
+<strong>Python con peewee</strong> permite construir un CRUD conciso sin perder control sobre el SQL
+generado. peewee ofrece <code>db.atomic()</code> para agrupar operaciones en una transacción, lo que
+resulta ideal para el alta y la baja coordinada de propietario y mascota. <strong>PyMySQL</strong> es un
+driver puro Python, sin dependencias nativas, y <code>cryptography</code> es necesario para autenticarse
+contra MySQL 8.0 o superior cuando el usuario utiliza el plugin <code>caching_sha2_password</code>.
+</p>
+<p>
+<strong>Graphviz</strong> se utilizó para generar los diagramas desde definiciones textuales, de modo que
+cualquier cambio en el modelo pueda reflejarse regenerando la imagen. La documentación se maquetó en
+HTML y se imprimió a PDF con Edge en modo headless, lo que permite mantener el documento dentro del
+mismo repositorio y repetir la compilación cuando sea necesario.
+</p>
+
+
+<h1 id="s3"><span class="num">3</span>Análisis y diseño</h1>
+<p>
+Esta sección documenta el pasaje del relevamiento al modelo implementado: primero los requerimientos y
+las reglas del negocio, luego el modelo conceptual, después el modelo lógico y finalmente el modelo
+físico con las decisiones propias de MySQL.
+</p>
+
+<h2 id="s3-1">3.1 Requerimientos funcionales</h2>
+<div class="tcap">Tabla 3. Requerimientos funcionales del sistema.</div><table class=""><thead><tr><th>ID</th><th>Requerimiento</th><th>Descripción</th></tr></thead><tbody><tr><td>RF-01</td><td>Gestionar propietarios</td><td>Alta, baja, modificación y consulta de los dueños de mascotas.</td></tr>
+<tr><td>RF-02</td><td>Gestionar mascotas</td><td>Alta, baja, modificación y consulta de mascotas, vinculadas a un propietario y a una raza.</td></tr>
+<tr><td>RF-03</td><td>Administrar catálogos</td><td>Mantener las especies y las razas disponibles.</td></tr>
+<tr><td>RF-04</td><td>Registrar consultas</td><td>Registrar fecha, motivo, mascota y veterinario de cada atención.</td></tr>
+<tr><td>RF-05</td><td>Registrar diagnósticos</td><td>Asociar un diagnóstico a una consulta (como máximo uno).</td></tr>
+<tr><td>RF-06</td><td>Registrar tratamientos</td><td>Cargar uno o más tratamientos por consulta, con duración.</td></tr>
+<tr><td>RF-07</td><td>Registrar vacunaciones</td><td>Registrar vacuna, fecha de aplicación y próxima dosis.</td></tr>
+<tr><td>RF-08</td><td>Registrar cirugías</td><td>Registrar tipo, fecha, descripción, mascota y cirujano.</td></tr>
+<tr><td>RF-09</td><td>Registrar internaciones</td><td>Registrar ingreso, egreso, motivo y profesional responsable.</td></tr>
+<tr><td>RF-10</td><td>Consultar información</td><td>Obtener fichas, historial clínico, vacunas pendientes y resumen por veterinario.</td></tr>
+<tr><td>RF-11</td><td>Administrar accesos</td><td>Crear usuarios y asignar permisos según el rol.</td></tr></tbody></table>
+
+<h2 id="s3-2">3.2 Reglas de negocio</h2>
+<div class="tcap">Tabla 4. Reglas de negocio y su impacto en el modelo.</div><table class=""><thead><tr><th>ID</th><th>Regla de negocio</th><th>Implementación</th></tr></thead><tbody><tr><td>RN-01</td><td>Un propietario puede tener cero o muchas mascotas; cada mascota pertenece a un solo propietario.</td><td>FK <code>mascota.id_propietario</code> (1:N).</td></tr>
+<tr><td>RN-02</td><td>Cada mascota tiene una raza y cada raza pertenece a una especie.</td><td>FK <code>mascota.id_raza</code> y <code>raza.id_especie</code>.</td></tr>
+<tr><td>RN-03</td><td>La especie de una mascota se deriva de su raza; no se almacena dos veces.</td><td>Se eliminó <code>id_especie</code> de <code>mascota</code>.</td></tr>
+<tr><td>RN-04</td><td>Una consulta puede tener cero o un diagnóstico y cero o muchos tratamientos.</td><td>UNIQUE en <code>diagnostico.id_consulta</code>; FK 1:N en <code>tratamiento</code>.</td></tr>
+<tr><td>RN-05</td><td>No se puede eliminar un propietario con mascotas ni una mascota con historia clínica.</td><td><code>ON DELETE RESTRICT</code>.</td></tr>
+<tr><td>RN-06</td><td>Al eliminar una consulta se eliminan su diagnóstico y sus tratamientos.</td><td><code>ON DELETE CASCADE</code> en las dos tablas dependientes.</td></tr>
+<tr><td>RN-07</td><td>La fecha de nacimiento no puede ser futura.</td><td>Trigger <code>trg_mascota_fecha_nac_bi/bu</code>.</td></tr>
+<tr><td>RN-08</td><td>La próxima dosis debe ser posterior a la aplicación y el egreso no puede ser anterior al ingreso.</td><td>Restricciones CHECK.</td></tr>
+<tr><td>RN-09</td><td>La duración de un tratamiento debe ser mayor que cero.</td><td><code>CHECK (duracion_dias &gt; 0)</code>.</td></tr>
+<tr><td>RN-10</td><td>DNI, email del propietario, matrícula y email del veterinario son únicos.</td><td>Restricciones UNIQUE.</td></tr></tbody></table>
+
+<h2 id="s3-3">3.3 Modelo conceptual (Chen)</h2>
+<p>
+El modelo conceptual identifica once entidades y trece relaciones. Las entidades <code>MASCOTA</code> y
+<code>VETERINARIO</code> actúan como ejes: la primera concentra la historia del paciente y el segundo
+concentra la actividad profesional. La figura siguiente muestra las entidades, las relaciones y las
+cardinalidades; la segunda figura detalla los atributos de cada entidad.
+</p>
+<figure class=""><img src="../img/modelo_conceptual_chen.png" alt="Modelo conceptual en notación Chen: entidades, relaciones y cardinalidades."><figcaption>Figura 1. Modelo conceptual en notación Chen: entidades, relaciones y cardinalidades.</figcaption></figure>
+<p>
+Los atributos clave se representan subrayados. En el modelo conceptual no se incluyen las claves
+foráneas, porque las relaciones ya expresan la asociación entre entidades; las claves foráneas se
+materializan recién en los modelos lógico y físico.
+</p>
+<figure class=""><img src="../img/modelo_conceptual_atributos.png" alt="Atributos de las once entidades del modelo conceptual."><figcaption>Figura 2. Atributos de las once entidades del modelo conceptual.</figcaption></figure>
+<div class="tcap">Tabla 5. Relaciones del modelo conceptual.</div><table class=""><thead><tr><th>Entidad</th><th>Relación</th><th>Entidad</th><th>Cardinalidad</th></tr></thead><tbody><tr><td>PROPIETARIO</td><td>Posee</td><td>MASCOTA</td><td>1 : N</td></tr>
+<tr><td>ESPECIE</td><td>Agrupa</td><td>RAZA</td><td>1 : N</td></tr>
+<tr><td>RAZA</td><td>Tipifica</td><td>MASCOTA</td><td>1 : N</td></tr>
+<tr><td>MASCOTA</td><td>Genera</td><td>CONSULTA</td><td>1 : N</td></tr>
+<tr><td>VETERINARIO</td><td>Atiende</td><td>CONSULTA</td><td>1 : N</td></tr>
+<tr><td>CONSULTA</td><td>Produce</td><td>DIAGNOSTICO</td><td>1 : 1</td></tr>
+<tr><td>CONSULTA</td><td>Indica</td><td>TRATAMIENTO</td><td>1 : N</td></tr>
+<tr><td>MASCOTA</td><td>Recibe</td><td>VACUNACION</td><td>1 : N</td></tr>
+<tr><td>VETERINARIO</td><td>Aplica</td><td>VACUNACION</td><td>1 : N</td></tr>
+<tr><td>MASCOTA</td><td>Se somete</td><td>CIRUGIA</td><td>1 : N</td></tr>
+<tr><td>VETERINARIO</td><td>Realiza</td><td>CIRUGIA</td><td>1 : N</td></tr>
+<tr><td>MASCOTA</td><td>Registra</td><td>INTERNACION</td><td>1 : N</td></tr>
+<tr><td>VETERINARIO</td><td>Atiende</td><td>INTERNACION</td><td>1 : N</td></tr></tbody></table>
+
+<h2 id="s3-4">3.4 Modelo lógico (pata de gallo)</h2>
+<p>
+El pasaje al modelo lógico introduce las claves primarias sustitutas, las claves foráneas y las reglas
+de integridad referencial. Se utilizaron claves <code>INT UNSIGNED AUTO_INCREMENT</code> por su
+eficiencia en índices y porque desacoplan la identidad interna de los datos de negocio, como el DNI o
+la matrícula, que igualmente conservan su restricción de unicidad.
+</p>
+<figure class=""><img src="../img/modelo_logico_pata_gallo.png" alt="Modelo lógico en notación pata de gallo."><figcaption>Figura 3. Modelo lógico en notación pata de gallo.</figcaption></figure>
+<div class="tcap">Tabla 6. Claves foráneas y reglas de borrado.</div><table class=""><thead><tr><th>Tabla hija</th><th>Campo</th><th>Tabla padre</th><th>Cardinalidad</th><th>ON DELETE</th></tr></thead><tbody><tr><td>mascota</td><td>id_propietario</td><td>propietario</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>raza</td><td>id_especie</td><td>especie</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>mascota</td><td>id_raza</td><td>raza</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>consulta</td><td>id_mascota</td><td>mascota</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>consulta</td><td>id_veterinario</td><td>veterinario</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>diagnostico</td><td>id_consulta</td><td>consulta</td><td>1 : 1</td><td>CASCADE</td></tr>
+<tr><td>tratamiento</td><td>id_consulta</td><td>consulta</td><td>1 : N</td><td>CASCADE</td></tr>
+<tr><td>vacunacion</td><td>id_mascota</td><td>mascota</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>vacunacion</td><td>id_veterinario</td><td>veterinario</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>cirugia</td><td>id_mascota</td><td>mascota</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>cirugia</td><td>id_veterinario</td><td>veterinario</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>internacion</td><td>id_mascota</td><td>mascota</td><td>1 : N</td><td>RESTRICT</td></tr>
+<tr><td>internacion</td><td>id_veterinario</td><td>veterinario</td><td>1 : N</td><td>RESTRICT</td></tr></tbody></table>
+<p>
+La relación 1:1 entre <code>consulta</code> y <code>diagnostico</code> se implementa con una clave
+foránea que además es única (<code>uq_diagnostico_consulta</code>). De este modo, una consulta no puede
+tener dos diagnósticos, pero puede no tener ninguno. Los tratamientos, en cambio, se mantienen en una
+tabla separada porque una consulta puede indicar varios y porque cada uno tiene atributos propios
+(medicamento, posología y duración).
+</p>
+<p>
+Las reglas de borrado siguen un criterio clínico: los datos que forman parte de la historia del paciente
+no se eliminan en cascada (<code>RESTRICT</code>), mientras que el diagnóstico y los tratamientos son
+dependientes de la consulta y se eliminan con ella (<code>CASCADE</code>). Así se evita dejar registros
+huérfanos y se protege la trazabilidad.
+</p>
+
+<h2 id="s3-5">3.5 Normalización</h2>
+<p>
+El esquema se normalizó hasta la Tercera Forma Normal. A continuación se justifica cada etapa con
+ejemplos concretos del dominio.
+</p>
+<h3>Primera Forma Normal (1FN)</h3>
+<p>
+Todos los atributos son atómicos y no existen grupos repetidos. Un propietario tiene un solo teléfono
+en la columna <code>telefono</code>; si en el futuro se necesitan varios, corresponde una tabla de
+teléfonos y no una lista separada por comas. Del mismo modo, los tratamientos de una consulta no se
+guardan como texto en <code>consulta</code>, sino como filas independientes en <code>tratamiento</code>.
+</p>
+<h3>Segunda Forma Normal (2FN)</h3>
+<p>
+Todos los atributos que no forman parte de la clave dependen de la clave completa. Como todas las tablas
+utilizan una clave primaria simple y sustituta, la 2FN se cumple por construcción. En <code>raza</code>,
+la unicidad compuesta <code>(id_especie, nombre_raza)</code> impide repetir la misma raza dentro de una
+especie, pero <code>nombre_raza</code> depende funcionalmente de <code>id_raza</code>.
+</p>
+<h3>Tercera Forma Normal (3FN)</h3>
+<p>
+No existen dependencias transitivas. El caso más importante es la especie de la mascota: en una versión
+previa, <code>mascota</code> contenía <code>id_raza</code> e <code>id_especie</code>. Como la especie se
+deduce de la raza, mantener ambas columnas generaba una dependencia transitiva
+(<code>id_mascota → id_raza → id_especie</code>) y el riesgo de inconsistencias. Se eliminó
+<code>id_especie</code> de <code>mascota</code> y la especie se obtiene mediante
+<code>mascota → raza → especie</code>.
+</p>
+<p>
+El mismo criterio se aplicó a los datos del propietario (no se repiten en <code>mascota</code>), a los
+datos del veterinario (no se repiten en <code>consulta</code>) y a los tratamientos (no se almacenan
+como una lista dentro de la consulta). La edad de la mascota es un dato derivado: se calcula en la vista
+<code>v_ficha_mascota</code> con <code>TIMESTAMPDIFF</code> y no se almacena.
+</p>
+<div class="tcap">Tabla 7. Resumen de la normalización aplicada.</div><table class=""><thead><tr><th>Situación inicial</th><th>Problema</th><th>Solución adoptada</th></tr></thead><tbody><tr><td><code>mascota</code> con especie y raza</td><td>Dependencia transitiva y datos duplicados.</td><td>Catálogos <code>especie</code> y <code>raza</code>; la especie se deriva de la raza.</td></tr>
+<tr><td>Datos del dueño dentro de <code>mascota</code></td><td>Duplicación y anomalías de actualización.</td><td>Tabla <code>propietario</code> y FK.</td></tr>
+<tr><td>Tratamientos como texto en <code>consulta</code></td><td>Grupo repetido, incumple 1FN.</td><td>Tabla <code>tratamiento</code> con FK a la consulta.</td></tr>
+<tr><td>Diagnóstico dentro de <code>consulta</code></td><td>Atributo opcional y dependiente.</td><td>Tabla <code>diagnostico</code> 1:1 con UNIQUE.</td></tr>
+<tr><td>Edad almacenada</td><td>Dato derivado que se desactualiza.</td><td>Se calcula en la vista, no se almacena.</td></tr></tbody></table>
+
+<h2 id="s3-6">3.6 Modelo físico (EER)</h2>
+<p>
+El modelo físico refleja la implementación real en MySQL: tipos de datos, nulabilidad, claves,
+restricciones e índices. La figura siguiente se generó a partir de la misma definición que el script
+DDL, por lo que ambos artefactos se mantienen alineados.
+</p>
+<figure class=""><img src="../img/modelo_fisico_eer.png" alt="Modelo físico EER de la base veterinaria_integrador en MySQL 26.7."><figcaption>Figura 4. Modelo físico EER de la base veterinaria_integrador en MySQL 26.7.</figcaption></figure>
+<div class="tcap">Tabla 8. Decisiones de implementación física.</div><table class=""><thead><tr><th>Decisión</th><th>Valor</th><th>Fundamento</th></tr></thead><tbody><tr><td>Motor de almacenamiento</td><td>InnoDB</td><td>Transacciones ACID, claves foráneas y bloqueo a nivel de fila.</td></tr>
+<tr><td>Juego de caracteres</td><td>utf8mb4 / utf8mb4_unicode_ci</td><td>Soporte completo de acentos, eñes y caracteres especiales.</td></tr>
+<tr><td>Claves primarias</td><td>INT UNSIGNED AUTO_INCREMENT</td><td>Índices compactos y estabilidad de las referencias.</td></tr>
+<tr><td>Dominio de sexo</td><td>ENUM('Macho','Hembra','Otro')</td><td>Restringe el dominio sin una tabla adicional.</td></tr>
+<tr><td>Fechas de negocio</td><td>DATE / DATETIME</td><td>DATE para días; DATETIME para consultas e internaciones.</td></tr>
+<tr><td>Restricciones de dominio</td><td>CHECK</td><td>Duración positiva, próxima dosis posterior y egreso no anterior al ingreso.</td></tr>
+<tr><td>Validación temporal</td><td>Triggers BEFORE INSERT/UPDATE</td><td>MySQL no admite CURDATE() dentro de un CHECK.</td></tr>
+<tr><td>Índices</td><td>FK, fechas y apellidos</td><td>Optimizan JOIN, búsquedas por rango y ordenamientos.</td></tr>
+<tr><td>Borrado</td><td>RESTRICT / CASCADE</td><td>Protege la historia clínica y elimina solo datos dependientes.</td></tr>
+<tr><td>Modo SQL</td><td>STRICT_TRANS_TABLES + ONLY_FULL_GROUP_BY</td><td>Evita truncamientos silenciosos y valida agregaciones.</td></tr></tbody></table>
+
+
+<h1 id="s4"><span class="num">4</span>Diccionario de datos</h1>
+<p>
+El diccionario describe cada tabla, sus columnas, tipos, nulabilidad, restricciones y propósito. Se
+incluyen además las vistas y los usuarios definidos en el script.
+</p>
+
+<h2 id="s4-1">4.1 Convenciones</h2>
+<div class="tcap">Tabla 9. Convenciones utilizadas en el diccionario.</div><table class=""><thead><tr><th>Símbolo</th><th>Significado</th></tr></thead><tbody><tr><td><span class="badge pk">PK</span></td><td>Clave primaria.</td></tr>
+<tr><td><span class="badge fk">FK</span> &rarr; tabla</td><td>Clave foránea hacia la tabla indicada.</td></tr>
+<tr><td><span class="badge uq">UQ</span></td><td>Restricción de unicidad.</td></tr>
+<tr><td>NN</td><td>Columna NOT NULL (se indica en la columna «Nulo» como «No»).</td></tr>
+<tr><td>—</td><td>Sin restricción adicional.</td></tr></tbody></table>
+<p class="small muted">
+Los nombres de tablas y columnas se escriben en minúsculas y con guiones bajos. Las claves primarias
+siguen el patrón <code>id_&lt;tabla&gt;</code> y las foráneas repiten el nombre de la clave referenciada.
+</p>
+
+<h2 id="s4-2">4.2 Tablas</h2>
+
+<h3 id="t-especie">4.2.1 especie</h3>
+<p>Catálogo de las especies atendidas. Permite clasificar las razas y, a través de ellas, a las mascotas.</p>
+<div class="tcap">Tabla 10. Diccionario de datos: <code>especie</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_especie</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la especie.</td></tr>
+<tr><td>nombre_especie</td><td>VARCHAR(40)</td><td>No</td><td><span class="badge uq">UQ</span></td><td>Nombre único de la especie (Perro, Gato, Conejo, Ave).</td></tr></tbody></table>
+
+<h3 id="t-raza">4.2.2 raza</h3>
+<p>Razas reconocidas para cada especie. La combinación especie + nombre de raza es única.</p>
+<div class="tcap">Tabla 11. Diccionario de datos: <code>raza</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_raza</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la raza.</td></tr>
+<tr><td>nombre_raza</td><td>VARCHAR(60)</td><td>No</td><td><span class="badge uq">UQ</span> compuesta</td><td>Nombre de la raza; único dentro de su especie.</td></tr>
+<tr><td>id_especie</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; especie</td><td>Especie a la que pertenece la raza.</td></tr></tbody></table>
+
+<h3 id="t-propietario">4.2.3 propietario</h3>
+<p>Personas responsables de las mascotas. Es la tabla maestra del CRUD implementado en Python.</p>
+<div class="tcap">Tabla 12. Diccionario de datos: <code>propietario</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_propietario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno del propietario.</td></tr>
+<tr><td>nombre</td><td>VARCHAR(50)</td><td>No</td><td>—</td><td>Nombre del propietario.</td></tr>
+<tr><td>apellido</td><td>VARCHAR(50)</td><td>No</td><td>Índice</td><td>Apellido del propietario; indexado para búsquedas.</td></tr>
+<tr><td>dni</td><td>VARCHAR(10)</td><td>No</td><td><span class="badge uq">UQ</span></td><td>Documento nacional de identidad; único.</td></tr>
+<tr><td>telefono</td><td>VARCHAR(20)</td><td>No</td><td>—</td><td>Teléfono de contacto.</td></tr>
+<tr><td>email</td><td>VARCHAR(100)</td><td>Sí</td><td><span class="badge uq">UQ</span></td><td>Correo electrónico; único y opcional.</td></tr>
+<tr><td>direccion</td><td>VARCHAR(150)</td><td>Sí</td><td>—</td><td>Domicilio declarado.</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>No</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Fecha y hora de alta del registro.</td></tr></tbody></table>
+
+<h3 id="t-mascota">4.2.4 mascota</h3>
+<p>Pacientes del sistema. Cada mascota pertenece a un propietario y a una raza; la especie se obtiene desde la raza.</p>
+<div class="tcap">Tabla 13. Diccionario de datos: <code>mascota</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_mascota</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la mascota.</td></tr>
+<tr><td>nombre</td><td>VARCHAR(50)</td><td>No</td><td>—</td><td>Nombre de la mascota.</td></tr>
+<tr><td>fecha_nacimiento</td><td>DATE</td><td>No</td><td>Trigger de validación</td><td>Fecha de nacimiento; no puede ser futura.</td></tr>
+<tr><td>sexo</td><td>ENUM('Macho','Hembra','Otro')</td><td>No</td><td>Dominio cerrado</td><td>Sexo del animal.</td></tr>
+<tr><td>antecedentes_clinicos</td><td>TEXT</td><td>Sí</td><td>—</td><td>Alergias, cirugías previas y observaciones.</td></tr>
+<tr><td>id_propietario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; propietario</td><td>Propietario responsable.</td></tr>
+<tr><td>id_raza</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; raza</td><td>Raza de la mascota.</td></tr></tbody></table>
+
+<h3 id="t-veterinario">4.2.5 veterinario</h3>
+<p>Profesionales que intervienen en consultas, vacunaciones, cirugías e internaciones.</p>
+<div class="tcap">Tabla 14. Diccionario de datos: <code>veterinario</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_veterinario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno del profesional.</td></tr>
+<tr><td>nombre</td><td>VARCHAR(50)</td><td>No</td><td>—</td><td>Nombre del profesional.</td></tr>
+<tr><td>apellido</td><td>VARCHAR(50)</td><td>No</td><td>—</td><td>Apellido del profesional.</td></tr>
+<tr><td>matricula</td><td>VARCHAR(30)</td><td>No</td><td><span class="badge uq">UQ</span></td><td>Matrícula profesional; única.</td></tr>
+<tr><td>especialidad</td><td>VARCHAR(100)</td><td>Sí</td><td>—</td><td>Especialidad declarada.</td></tr>
+<tr><td>telefono</td><td>VARCHAR(20)</td><td>Sí</td><td>—</td><td>Teléfono de contacto.</td></tr>
+<tr><td>email</td><td>VARCHAR(100)</td><td>Sí</td><td><span class="badge uq">UQ</span></td><td>Correo electrónico; único y opcional.</td></tr></tbody></table>
+
+<h3 id="t-consulta">4.2.6 consulta</h3>
+<p>Atenciones clínicas realizadas a una mascota por un veterinario. Es el eje del historial clínico.</p>
+<div class="tcap">Tabla 15. Diccionario de datos: <code>consulta</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_consulta</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la consulta.</td></tr>
+<tr><td>fecha</td><td>DATETIME</td><td>No</td><td>Índice</td><td>Fecha y hora de la atención.</td></tr>
+<tr><td>motivo</td><td>VARCHAR(255)</td><td>No</td><td>—</td><td>Motivo expresado por el propietario.</td></tr>
+<tr><td>id_mascota</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; mascota</td><td>Paciente atendido.</td></tr>
+<tr><td>id_veterinario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; veterinario</td><td>Profesional que realiza la atención.</td></tr></tbody></table>
+
+<h3 id="t-diagnostico">4.2.7 diagnostico</h3>
+<p>Resultado clínico de una consulta. La relación es 1:1: cada consulta tiene como máximo un diagnóstico.</p>
+<div class="tcap">Tabla 16. Diccionario de datos: <code>diagnostico</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_diagnostico</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno del diagnóstico.</td></tr>
+<tr><td>descripcion</td><td>VARCHAR(500)</td><td>No</td><td>—</td><td>Diagnóstico o hallazgo clínico.</td></tr>
+<tr><td>id_consulta</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; consulta <span class="badge uq">UQ</span></td><td>Consulta asociada; la restricción UNIQUE garantiza el 1:1.</td></tr></tbody></table>
+
+<h3 id="t-tratamiento">4.2.8 tratamiento</h3>
+<p>Indicaciones terapéuticas derivadas de una consulta. Una consulta puede generar varios tratamientos.</p>
+<div class="tcap">Tabla 17. Diccionario de datos: <code>tratamiento</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_tratamiento</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno del tratamiento.</td></tr>
+<tr><td>medicamento</td><td>VARCHAR(100)</td><td>No</td><td>—</td><td>Medicamento o indicación principal.</td></tr>
+<tr><td>descripcion</td><td>VARCHAR(255)</td><td>Sí</td><td>—</td><td>Posología y cuidados.</td></tr>
+<tr><td>duracion_dias</td><td>INT UNSIGNED</td><td>No</td><td>CHECK > 0</td><td>Duración en días; debe ser mayor que cero.</td></tr>
+<tr><td>id_consulta</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; consulta</td><td>Consulta que indica el tratamiento.</td></tr></tbody></table>
+
+<h3 id="t-vacunacion">4.2.9 vacunacion</h3>
+<p>Aplicaciones de vacunas y control de la próxima dosis. Vincula mascota y veterinario.</p>
+<div class="tcap">Tabla 18. Diccionario de datos: <code>vacunacion</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_vacunacion</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la vacunación.</td></tr>
+<tr><td>nombre_vacuna</td><td>VARCHAR(100)</td><td>No</td><td>—</td><td>Nombre comercial o tipo de vacuna.</td></tr>
+<tr><td>fecha</td><td>DATE</td><td>No</td><td>—</td><td>Fecha de aplicación.</td></tr>
+<tr><td>proxima_dosis</td><td>DATE</td><td>Sí</td><td>CHECK > fecha</td><td>Fecha sugerida para la próxima dosis.</td></tr>
+<tr><td>id_mascota</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; mascota</td><td>Mascota vacunada.</td></tr>
+<tr><td>id_veterinario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; veterinario</td><td>Profesional que aplica la vacuna.</td></tr></tbody></table>
+
+<h3 id="t-cirugia">4.2.10 cirugia</h3>
+<p>Intervenciones quirúrgicas realizadas a una mascota, con su profesional responsable.</p>
+<div class="tcap">Tabla 19. Diccionario de datos: <code>cirugia</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_cirugia</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la cirugía.</td></tr>
+<tr><td>tipo</td><td>VARCHAR(100)</td><td>No</td><td>—</td><td>Tipo de intervención.</td></tr>
+<tr><td>fecha</td><td>DATE</td><td>No</td><td>Índice</td><td>Fecha de la cirugía.</td></tr>
+<tr><td>descripcion</td><td>VARCHAR(500)</td><td>Sí</td><td>—</td><td>Detalle del procedimiento.</td></tr>
+<tr><td>id_mascota</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; mascota</td><td>Paciente operado.</td></tr>
+<tr><td>id_veterinario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; veterinario</td><td>Cirujano responsable.</td></tr></tbody></table>
+
+<h3 id="t-internacion">4.2.11 internacion</h3>
+<p>Internaciones de mascotas. Mientras <code>fecha_egreso</code> es NULL, la internación se considera activa.</p>
+<div class="tcap">Tabla 20. Diccionario de datos: <code>internacion</code></div><table class=""><thead><tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave / restricción</th><th>Descripción</th></tr></thead><tbody><tr><td>id_internacion</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge pk">PK</span> AUTO_INCREMENT</td><td>Identificador interno de la internación.</td></tr>
+<tr><td>fecha_ingreso</td><td>DATETIME</td><td>No</td><td>—</td><td>Fecha y hora de ingreso.</td></tr>
+<tr><td>fecha_egreso</td><td>DATETIME</td><td>Sí</td><td>CHECK >= ingreso</td><td>Fecha y hora de alta; NULL si continúa internado.</td></tr>
+<tr><td>motivo</td><td>VARCHAR(255)</td><td>No</td><td>—</td><td>Motivo de la internación.</td></tr>
+<tr><td>id_mascota</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; mascota</td><td>Mascota internada.</td></tr>
+<tr><td>id_veterinario</td><td>INT UNSIGNED</td><td>No</td><td><span class="badge fk">FK</span> &rarr; veterinario</td><td>Profesional responsable.</td></tr></tbody></table>
+
+
+<h2 id="s4-3">4.3 Vistas</h2>
+<p>
+Las vistas encapsulan las consultas de uso frecuente y, al mismo tiempo, sirven como capa de seguridad:
+el usuario <code>consulta_vet</code> solo puede acceder a ellas y no a las tablas base.
+</p>
+<div class="tcap">Tabla 21. Vistas definidas en la base.</div><table class=""><thead><tr><th>Vista</th><th>Propósito</th><th>Columnas principales</th></tr></thead><tbody><tr><td>v_ficha_mascota</td><td>Ficha completa de cada mascota con especie, raza, edad y datos del dueño.</td><td>id_mascota, mascota, especie, raza, sexo, fecha_nacimiento, edad_anios, duenio, telefono, email</td></tr>
+<tr><td>v_historial_clinico</td><td>Historial consolidado: una fila por consulta con diagnóstico y tratamientos agrupados.</td><td>id_consulta, fecha, mascota, especie, raza, duenio, telefono, veterinario, especialidad, motivo, diagnostico, tratamientos</td></tr>
+<tr><td>v_vacunas_pendientes</td><td>Vacunas cuya próxima dosis vence dentro de los próximos 60 días.</td><td>mascota, duenio, telefono, nombre_vacuna, fecha_aplicacion, proxima_dosis, dias_para_proxima_dosis, veterinario</td></tr>
+<tr><td>v_resumen_veterinario</td><td>Cantidad de consultas, cirugías, vacunaciones e internaciones por profesional.</td><td>id_veterinario, veterinario, especialidad, total_consultas, total_cirugias, total_vacunaciones, total_internaciones</td></tr>
+<tr><td>v_internaciones_activas</td><td>Internaciones sin fecha de egreso, con días transcurridos.</td><td>id_internacion, mascota, duenio, telefono, fecha_ingreso, dias_internado, motivo, veterinario</td></tr></tbody></table>
+
+<h2 id="s4-4">4.4 Usuarios y permisos</h2>
+<p>
+Se definieron cinco cuentas que representan los roles operativos de la veterinaria. Ninguna cuenta
+—salvo el administrador— tiene permisos globales; cada una recibe únicamente las operaciones que
+necesita para su función.
+</p>
+<div class="tcap">Tabla 22. Usuarios de base de datos y permisos.</div><table class=""><thead><tr><th>Usuario</th><th>Rol</th><th>Permisos</th></tr></thead><tbody><tr><td>admin_vet</td><td>Administrador</td><td>ALL PRIVILEGES sobre la base, con GRANT OPTION.</td></tr>
+<tr><td>recepcion_vet</td><td>Recepción</td><td>SELECT, INSERT y UPDATE en propietario, mascota y consulta; SELECT en el resto de las tablas y en v_ficha_mascota.</td></tr>
+<tr><td>veterinario_vet</td><td>Veterinario</td><td>SELECT sobre toda la base; INSERT y UPDATE en consulta, diagnostico y tratamiento.</td></tr>
+<tr><td>asistente_vet</td><td>Asistente</td><td>SELECT sobre toda la base; INSERT y UPDATE en vacunacion, cirugia e internacion.</td></tr>
+<tr><td>consulta_vet</td><td>Consulta pública</td><td>SELECT únicamente sobre las cinco vistas.</td></tr></tbody></table>
+<div class="callout warn"><span class="t">Credenciales de ejemplo</span>Las contraseñas incluidas en el script son de carácter académico y deben reemplazarse antes de cualquier despliegue real. En producción también corresponde restringir el host de conexión y almacenar los secretos fuera del repositorio.</div>
+
+
+<h1 id="s5"><span class="num">5</span>Implementación SQL</h1>
+<p>
+El script <code>sql/veterinaria_integrador.sql</code> es autocontenido y se ejecuta de principio a fin
+sin intervención manual. Está organizado en secciones numeradas para facilitar su lectura y su
+verificación.
+</p>
+
+<h2 id="s5-1">5.1 Estructura del script</h2>
+<div class="tcap">Tabla 23. Secciones del script SQL.</div><table class=""><thead><tr><th>Sección</th><th>Contenido</th></tr></thead><tbody><tr><td>0. Creación de la base</td><td>DROP/CREATE de <code>veterinaria_integrador</code>, charset y modo SQL.</td></tr>
+<tr><td>1. DDL</td><td>Once tablas con PK, FK, UNIQUE, CHECK e índices.</td></tr>
+<tr><td>2. Triggers</td><td>Validación de la fecha de nacimiento en INSERT y UPDATE.</td></tr>
+<tr><td>3. Datos de prueba</td><td>Especies, razas, propietarios, mascotas, veterinarios, consultas, diagnósticos, tratamientos, vacunaciones, cirugías e internaciones.</td></tr>
+<tr><td>4. Vistas</td><td>Cinco vistas de consulta y resumen.</td></tr>
+<tr><td>5. DCL</td><td>Cinco usuarios y sus permisos.</td></tr>
+<tr><td>6. DML</td><td>Transacciones con COMMIT y ROLLBACK, UPDATE multitabla y funciones nativas.</td></tr>
+<tr><td>7. Consultas</td><td>JOIN, GROUP BY/HAVING, LIKE, subconsultas y función de ventana.</td></tr>
+<tr><td>8. Verificación</td><td>Conteo final de filas por tabla.</td></tr></tbody></table>
+
+<h2 id="s5-2">5.2 DDL y triggers</h2>
+<p>
+El DDL define las once tablas con sus restricciones. Se muestran dos ejemplos representativos: la tabla
+<code>mascota</code>, que concentra las claves foráneas hacia propietario y raza, y la tabla
+<code>diagnostico</code>, que implementa la relación 1:1 mediante una clave foránea única.
+</p>
+<div class="ccap">Listado 1. DDL de la tabla mascota.</div><pre>CREATE TABLE mascota (
+    id_mascota              INT UNSIGNED AUTO_INCREMENT,
+    nombre                  VARCHAR(50)  NOT NULL,
+    fecha_nacimiento        DATE         NOT NULL,
+    sexo                    ENUM('Macho', 'Hembra', 'Otro') NOT NULL,
+    antecedentes_clinicos   TEXT,
+    id_propietario          INT UNSIGNED NOT NULL,
+    id_raza                 INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (id_mascota),
+    KEY idx_mascota_propietario (id_propietario),
+    KEY idx_mascota_raza (id_raza),
+    CONSTRAINT fk_mascota_propietario
+        FOREIGN KEY (id_propietario) REFERENCES propietario (id_propietario)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_mascota_raza
+        FOREIGN KEY (id_raza) REFERENCES raza (id_raza)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE = InnoDB;</pre>
+<div class="ccap">Listado 2. DDL de la tabla diagnostico (relación 1:1).</div><pre>CREATE TABLE diagnostico (
+    id_diagnostico  INT UNSIGNED AUTO_INCREMENT,
+    descripcion     VARCHAR(500) NOT NULL,
+    id_consulta     INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (id_diagnostico),
+    UNIQUE KEY uq_diagnostico_consulta (id_consulta),
+    CONSTRAINT fk_diagnostico_consulta
+        FOREIGN KEY (id_consulta) REFERENCES consulta (id_consulta)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) ENGINE = InnoDB;</pre>
+<p>
+La validación de la fecha de nacimiento se resolvió con triggers, porque MySQL no permite
+<code>CURDATE()</code> en una restricción CHECK. El trigger se dispara antes de insertar o actualizar y
+rechaza la operación con un mensaje claro.
+</p>
+<div class="ccap">Listado 3. Trigger de validación de la fecha de nacimiento.</div><pre>DELIMITER $$
+
+CREATE TRIGGER trg_mascota_fecha_nac_bi
+BEFORE INSERT ON mascota
+FOR EACH ROW
+BEGIN
+    IF NEW.fecha_nacimiento &gt; CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La fecha de nacimiento no puede ser futura';
+    END IF;
+END$$
+
+DELIMITER ;</pre>
+
+<h2 id="s5-3">5.3 DCL y seguridad</h2>
+<p>
+El DCL crea cinco usuarios y asigna permisos por tabla o por vista. Se aplica el principio de mínimo
+privilegio: por ejemplo, recepción puede cargar propietarios, mascotas y consultas, pero no puede
+eliminarlos ni modificar diagnósticos.
+</p>
+<div class="ccap">Listado 4. Creación del usuario de recepción y asignación de permisos.</div><pre>CREATE USER 'recepcion_vet'@'localhost' IDENTIFIED BY 'RecepVet2026!';
+
+GRANT SELECT, INSERT, UPDATE ON veterinaria_integrador.propietario TO 'recepcion_vet'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON veterinaria_integrador.mascota     TO 'recepcion_vet'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON veterinaria_integrador.consulta    TO 'recepcion_vet'@'localhost';
+GRANT SELECT ON veterinaria_integrador.v_ficha_mascota TO 'recepcion_vet'@'localhost';</pre>
+<p>
+El usuario <code>consulta_vet</code> solo recibe <code>SELECT</code> sobre las cinco vistas. Esta
+decisión evita exponer datos sensibles de las tablas base y demuestra que una vista puede funcionar como
+frontera de seguridad.
+</p>
+
+<h2 id="s5-4">5.4 DML, transacciones y funciones nativas</h2>
+<p>
+Las operaciones de escritura se agrupan en transacciones. El alta de un propietario y su mascota debe
+ser atómica: si falla la segunda inserción, la primera no debe quedar registrada. El script utiliza
+<code>LAST_INSERT_ID()</code> para recuperar la clave generada y <code>COMMIT</code> para confirmar.
+</p>
+<div class="ccap">Listado 5. Alta coordinada de propietario y mascota con COMMIT.</div><pre>START TRANSACTION;
+
+INSERT INTO propietario (nombre, apellido, dni, telefono, email, direccion)
+VALUES ('Sofia', 'Herrera', '33111222', '2615550106', 'sofia.herrera@mail.com', 'Rivadavia 456');
+
+SET @id_duenio_nuevo = LAST_INSERT_ID();
+
+INSERT INTO mascota (nombre, fecha_nacimiento, sexo, antecedentes_clinicos, id_propietario, id_raza)
+VALUES ('Chispita', '2024-02-01', 'Hembra', 'Sin antecedentes.', @id_duenio_nuevo, 4);
+
+COMMIT;</pre>
+<p>
+También se incluye una prueba explícita de <code>ROLLBACK</code>: se inserta un registro de prueba, se
+verifica el conteo dentro de la transacción y luego se deshace la operación. La salida real fue 7
+propietarios dentro de la transacción y 6 después del rollback, lo que demuestra que el cambio no se
+persistió.
+</p>
+<div class="ccap">Listado 6. Prueba de ROLLBACK.</div><pre>START TRANSACTION;
+
+INSERT INTO propietario (nombre, apellido, dni, telefono, email, direccion)
+VALUES ('Prueba', 'Rollback', '99000111', '0000000000', 'rollback@mail.com', 'Calle Falsa 123');
+
+SELECT COUNT(*) AS propietarios_dentro_de_la_transaccion FROM propietario;
+-- 7
+
+ROLLBACK;
+
+SELECT COUNT(*) AS propietarios_despues_del_rollback FROM propietario;
+-- 6</pre>
+<p>
+El script utiliza funciones nativas de MySQL para el tratamiento de cadenas, fechas y agregaciones:
+</p>
+<div class="tcap">Tabla 24. Funciones nativas utilizadas.</div><table class=""><thead><tr><th>Función</th><th>Uso en el proyecto</th></tr></thead><tbody><tr><td><code>CONCAT</code></td><td>Une nombre y apellido; compone el teléfono con prefijo internacional.</td></tr>
+<tr><td><code>UPPER</code> / <code>LOWER</code></td><td>Normaliza descripciones y correos en las operaciones DML.</td></tr>
+<tr><td><code>LAST_INSERT_ID</code></td><td>Recupera la clave generada para vincular la mascota con su dueño.</td></tr>
+<tr><td><code>CURDATE</code> / <code>NOW</code></td><td>Calcula edades, días de internación y vencimientos.</td></tr>
+<tr><td><code>DATE_ADD</code></td><td>Proyecta la ventana de 60 días para las vacunas pendientes.</td></tr>
+<tr><td><code>DATEDIFF</code></td><td>Calcula días hasta la próxima dosis y días internado.</td></tr>
+<tr><td><code>TIMESTAMPDIFF</code></td><td>Calcula la edad en años.</td></tr>
+<tr><td><code>GROUP_CONCAT</code></td><td>Agrupa los tratamientos de una consulta en una sola fila.</td></tr>
+<tr><td><code>COUNT</code> / <code>MAX</code></td><td>Agregaciones para los resúmenes y subconsultas.</td></tr>
+<tr><td><code>RANK() OVER</code></td><td>Ranking de veterinarios por cantidad de consultas.</td></tr></tbody></table>
+<p>
+El borrado en cascada se verificó eliminando la consulta 9: su diagnóstico y su tratamiento se
+eliminaron automáticamente, mientras que las consultas restantes conservaron su historia. Las reglas
+<code>RESTRICT</code> impiden, por ejemplo, eliminar un propietario que todavía tiene mascotas.
+</p>
+
+<h2 id="s5-5">5.5 Consultas destacadas</h2>
+<p>
+Además del CRUD, el script incluye consultas que ejercitan los contenidos de la materia. La primera es
+un JOIN de cuatro tablas con LEFT JOIN para incluir consultas sin diagnóstico.
+</p>
+<div class="ccap">Listado 7. JOIN de cuatro tablas: historial de una mascota.</div><pre>SELECT
+    m.nombre                    AS mascota,
+    c.fecha,
+    c.motivo,
+    d.descripcion               AS diagnostico,
+    CONCAT(v.nombre, ' ', v.apellido) AS veterinario
+FROM mascota m
+INNER JOIN consulta c     ON c.id_mascota = m.id_mascota
+INNER JOIN veterinario v  ON v.id_veterinario = c.id_veterinario
+LEFT JOIN diagnostico d   ON d.id_consulta = c.id_consulta
+WHERE m.nombre = 'Firulais'
+ORDER BY c.fecha;</pre>
+<p>
+La segunda agrupa por veterinario y filtra con HAVING los que tienen dos o más consultas. Se incluyen
+las columnas de agrupación en el <code>GROUP BY</code> para cumplir con <code>ONLY_FULL_GROUP_BY</code>.
+</p>
+<div class="ccap">Listado 8. GROUP BY con HAVING.</div><pre>SELECT
+    CONCAT(v.nombre, ' ', v.apellido) AS veterinario,
+    v.especialidad,
+    COUNT(c.id_consulta)              AS total_consultas
+FROM veterinario v
+LEFT JOIN consulta c ON c.id_veterinario = v.id_veterinario
+GROUP BY v.id_veterinario, v.nombre, v.apellido, v.especialidad
+HAVING COUNT(c.id_consulta) &gt;= 2
+ORDER BY total_consultas DESC;</pre>
+<p>
+La tercera utiliza una función de ventana para clasificar a los veterinarios, incluyendo a quienes no tienen
+consultas (LEFT JOIN). El resultado real fue: Ana Paredes 4 consultas (puesto 1), Raúl Benítez 3
+(puesto 2), Julia Molina 2 (puesto 3) y Esteban Ruiz y Laura Díaz 0 (puesto 4).
+</p>
+<div class="ccap">Listado 9. Ranking con RANK() OVER.</div><pre>SELECT
+    veterinario,
+    total_consultas,
+    RANK() OVER (ORDER BY total_consultas DESC) AS ranking
+FROM (
+    SELECT
+        CONCAT(v.nombre, ' ', v.apellido) AS veterinario,
+        COUNT(c.id_consulta)              AS total_consultas
+    FROM veterinario v
+    LEFT JOIN consulta c ON c.id_veterinario = v.id_veterinario
+    GROUP BY v.id_veterinario, v.nombre, v.apellido
+) AS resumen
+ORDER BY ranking;</pre>
+<p>
+También se incluyen búsquedas con <code>LIKE</code>, subconsultas con <code>NOT EXISTS</code> para
+detectar mascotas sin consultas, una subconsulta con <code>MAX</code> para identificar al veterinario con
+más atenciones y consultas sobre las cinco vistas.
+</p>
+
+
+<h1 id="s6"><span class="num">6</span>Aplicación Python con peewee</h1>
+<p>
+La aplicación <code>python/veterinaria_crud.py</code> implementa un CRUD sobre las dos tablas
+relacionadas <code>propietario</code> y <code>mascota</code>. Se incluyen además los modelos
+<code>Especie</code> y <code>Raza</code> como catálogos de apoyo para respetar la clave foránea de la
+mascota.
+</p>
+
+<h2>6.1 Arquitectura y conexión</h2>
+<p>
+La conexión se configura mediante variables de entorno, con valores por defecto aptos para un entorno
+local. Esto permite apuntar a otra base o a otro puerto sin modificar el código.
+</p>
+<div class="ccap">Listado 10. Configuración de la conexión con peewee y PyMySQL.</div><pre>DB_NAME = os.getenv("VET_DB", "veterinaria_integrador")
+DB_USER = os.getenv("VET_USER", "root")
+DB_PASSWORD = os.getenv("VET_PASSWORD", "")
+DB_HOST = os.getenv("VET_HOST", "127.0.0.1")
+DB_PORT = int(os.getenv("VET_PORT", "3306"))
+
+db = MySQLDatabase(
+    DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT,
+    charset="utf8mb4",
+)</pre>
+<div class="tcap">Tabla 25. Variables de entorno de la aplicación.</div><table class=""><thead><tr><th>Variable</th><th>Valor por defecto</th><th>Descripción</th></tr></thead><tbody><tr><td><code>VET_DB</code></td><td><code>veterinaria_integrador</code></td><td>Nombre de la base de datos.</td></tr>
+<tr><td><code>VET_USER</code></td><td><code>root</code></td><td>Usuario de MySQL.</td></tr>
+<tr><td><code>VET_PASSWORD</code></td><td>vacío</td><td>Contraseña del usuario.</td></tr>
+<tr><td><code>VET_HOST</code></td><td><code>127.0.0.1</code></td><td>Host del servidor.</td></tr>
+<tr><td><code>VET_PORT</code></td><td><code>3306</code></td><td>Puerto del servidor.</td></tr></tbody></table>
+
+<h2>6.2 Modelos</h2>
+<p>
+Cada modelo declara su tabla, sus campos y sus relaciones. La clave foránea se expone como un objeto
+<code>ForeignKeyField</code>, lo que permite navegar desde una mascota hacia su propietario y su raza
+sin escribir el JOIN manualmente.
+</p>
+<div class="ccap">Listado 11. Modelos Propietario y Mascota.</div><pre>class Propietario(BaseModel):
+    id_propietario = AutoField()
+    nombre = CharField(max_length=50)
+    apellido = CharField(max_length=50)
+    dni = CharField(max_length=10, unique=True)
+    telefono = CharField(max_length=20)
+    email = CharField(max_length=100, unique=True, null=True)
+    direccion = CharField(max_length=150, null=True)
+
+    class Meta:
+        table_name = "propietario"
+
+
+class Mascota(BaseModel):
+    id_mascota = AutoField()
+    nombre = CharField(max_length=50)
+    fecha_nacimiento = DateField()
+    sexo = CharField(max_length=10)
+    antecedentes_clinicos = TextField(null=True)
+    id_propietario = ForeignKeyField(
+        Propietario,
+        backref="mascotas",
+        column_name="id_propietario",
+        on_delete="RESTRICT",
+    )
+    id_raza = ForeignKeyField(
+        Raza, backref="mascotas", column_name="id_raza", on_delete="RESTRICT"
+    )
+
+    class Meta:
+        table_name = "mascota"</pre>
+
+<h2>6.3 Operaciones del CRUD</h2>
+<p>
+Las cuatro operaciones se implementan con transacciones atómicas. En el alta se crea primero el
+propietario y luego la mascota; en la modificación se actualizan ambas tablas; en la baja se elimina la
+mascota y, si el propietario queda sin mascotas, también se elimina el dueño.
+</p>
+<div class="tcap">Tabla 26. Operaciones del CRUD y su equivalente SQL.</div><table class=""><thead><tr><th>Operación</th><th>Función</th><th>Equivalente SQL</th><th>Transacción</th></tr></thead><tbody><tr><td>Listar</td><td><code>listar_propietarios()</code></td><td>SELECT con LEFT JOIN y COUNT.</td><td>No</td></tr>
+<tr><td>Buscar</td><td><code>buscar_por_patron()</code></td><td>SELECT con LIKE sobre mascota y apellido.</td><td>No</td></tr>
+<tr><td>Crear</td><td><code>crear_propietario_con_mascota()</code></td><td>INSERT en propietario + INSERT en mascota.</td><td><code>db.atomic()</code></td></tr>
+<tr><td>Actualizar</td><td><code>actualizar_duenio_y_mascota()</code></td><td>UPDATE en propietario + UPDATE en mascota.</td><td><code>db.atomic()</code></td></tr>
+<tr><td>Eliminar</td><td><code>eliminar_mascota_y_duenio()</code></td><td>DELETE en mascota + DELETE condicional en propietario.</td><td><code>db.atomic()</code></td></tr></tbody></table>
+<div class="ccap">Listado 12. Alta coordinada de propietario y mascota.</div><pre>def crear_propietario_con_mascota(
+    nombre: str,
+    apellido: str,
+    dni: str,
+    telefono: str,
+    email: str,
+    direccion: str,
+    mascota_nombre: str,
+    fecha_nacimiento: date,
+    sexo: str,
+    raza_nombre: str = "Mestizo",
+) -&gt; tuple[Propietario, Mascota]:
+    """INSERT en 2 tablas relacionadas dentro de una transaccion."""
+    raza = obtener_raza(raza_nombre)
+    with db.atomic():
+        duenio = Propietario.create(
+            nombre=nombre,
+            apellido=apellido,
+            dni=dni,
+            telefono=telefono,
+            email=email,
+            direccion=direccion,
+        )
+        mascota = Mascota.create(
+            nombre=mascota_nombre,
+            fecha_nacimiento=fecha_nacimiento,
+            sexo=sexo,
+            antecedentes_clinicos="Registro creado desde peewee.",
+            id_propietario=duenio,
+            id_raza=raza,
+        )
+    return duenio, mascota</pre>
+<p>
+La baja respeta el orden de las claves foráneas: primero se elimina la mascota (tabla hija) y luego el
+propietario (tabla padre), siempre dentro de la misma transacción. Si el propietario conserva otras
+mascotas, no se elimina.
+</p>
+<div class="ccap">Listado 13. Baja coordinada con verificación de mascotas restantes.</div><pre>def eliminar_mascota_y_duenio(id_propietario: int, id_mascota: int) -&gt; tuple[bool, bool]:
+    """
+    DELETE en 2 tablas relacionadas.
+    Primero se elimina la mascota; si el duenio queda sin mascotas, se elimina
+    tambien el duenio. Todo dentro de una transaccion.
+    """
+    with db.atomic():
+        mascota = Mascota.get(
+            (Mascota.id_mascota == id_mascota)
+            &amp; (Mascota.id_propietario == id_propietario)
+        )
+        mascota.delete_instance()
+
+        quedan = (
+            Mascota.select()
+            .where(Mascota.id_propietario == id_propietario)
+            .count()
+        )
+        duenio_eliminado = False
+        if quedan == 0:
+            Propietario.delete_by_id(id_propietario)
+            duenio_eliminado = True
+    return True, duenio_eliminado</pre>
+
+<h2>6.4 Ejecución y salida</h2>
+<p>
+El script ofrece tres modos: <code>--check</code> para verificar la conexión, <code>--demo</code> para
+ejecutar las cuatro operaciones sin intervención y <code>--menu</code> para operar de forma interactiva.
+La siguiente salida corresponde a una ejecución real de la demo contra la base poblada en la
+instancia de validación (puerto 3307); con los valores por defecto, la conexión apunta al puerto 3306.
+</p>
+<div class="ccap">Listado 14. Salida de la demo del CRUD.</div><pre>Conectado a 127.0.0.1:3307/veterinaria_integrador como root
+==============================================================================
+ DEMO CRUD - peewee sobre propietario y mascota
+==============================================================================
+
+--- Propietarios y cantidad de mascotas -------------------------
+ ID  Apellido y nombre                DNI        Telefono           Mascotas
+------------------------------------------------------------------------------
+  1  Fernandez, Lucia                 30111222   2615550101                2
+  2  Gomez, Martin                    28444555   2615550102                2
+  6  Herrera, Sofia                   33111222   2615550106                1
+  5  Nunez, Valeria                   29888999   2615550105                2
+  3  Rodriguez, Carla                 32666777   +54 9 2615550103          1
+  4  Sosa, Diego                      35777888   2615550104                1
+------------------------------------------------------------------------------
+
+[INSERT] Alta de propietario + mascota en una transaccion...
+  OK -&gt; propietario #8: Sofia Herrera (DNI 9223706)
+  OK -&gt; mascota     #10: Chispita (Hembra)
+
+[UPDATE] Modificacion de telefono y nombre de la mascota...
+  OK -&gt; Sofia Herrera (DNI 9223706) | telefono: 2615559999
+  OK -&gt; mascota: Chispa
+
+[DELETE] Baja de la mascota y del propietario de prueba...
+  OK -&gt; mascota eliminada: True
+  OK -&gt; propietario eliminado: True
+
+Demo finalizada correctamente.</pre>
+<div class="callout ok"><span class="t">Resultado</span>La demo completó el alta, la consulta con JOIN, la modificación, la búsqueda con LIKE y la baja. Al finalizar, la cantidad de propietarios volvió al valor inicial, lo que confirma que la baja se confirmó correctamente y que no quedaron registros de prueba.</div>
+
+
+<h1 id="s7"><span class="num">7</span>Pruebas y validación</h1>
+<p>
+La validación se realizó sobre una instancia MySQL 26.7 independiente, en el puerto 3307, para no
+interferir con la base <code>veterinaria_db</code> de los trabajos prácticos anteriores. Se ejecutó el
+script completo, se probaron las restricciones y se verificaron los permisos de cada usuario.
+</p>
+
+<h2>7.1 Matriz de pruebas</h2>
+<div class="tcap">Tabla 27. Matriz de pruebas ejecutadas.</div><table class=""><thead><tr><th>#</th><th>Prueba</th><th>Acción</th><th>Resultado esperado</th><th>Estado</th></tr></thead><tbody><tr><td>1</td><td>Ejecución completa</td><td>Script SQL de principio a fin.</td><td>Sin errores; 11 tablas, 5 vistas y 5 usuarios.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>2</td><td>Conteo de filas</td><td>SELECT por tabla.</td><td>Conteos coherentes con los datos de prueba.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>3</td><td>Integridad referencial</td><td>INSERT de mascota con propietario inexistente.</td><td>ERROR 1452.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>4</td><td>Borrado restringido</td><td>DELETE de propietario con mascotas.</td><td>ERROR 1451.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>5</td><td>Borrado en cascada</td><td>DELETE de la consulta 9.</td><td>Se eliminan su diagnóstico y su tratamiento.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>6</td><td>CHECK de duración</td><td>INSERT de tratamiento con duración 0.</td><td>ERROR 3819.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>7</td><td>Trigger de fecha</td><td>INSERT de mascota con fecha 2030-01-01.</td><td>ERROR 1644.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>8</td><td>COMMIT</td><td>Alta de propietario y mascota.</td><td>Ambos registros persisten.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>9</td><td>ROLLBACK</td><td>Alta de prueba y rollback.</td><td>El conteo vuelve al valor inicial.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>10</td><td>Vista</td><td>SELECT sobre v_ficha_mascota.</td><td>9 filas con especie, raza y dueño.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>11</td><td>Permisos de lectura</td><td>consulta_vet sobre una tabla base.</td><td>ERROR 1142.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>12</td><td>Permisos de escritura</td><td>recepcion_vet INSERT de propietario.</td><td>1 fila insertada.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>13</td><td>Permisos clínicos</td><td>veterinario_vet UPDATE de diagnóstico.</td><td>1 fila actualizada.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>14</td><td>Conexión Python</td><td><code>python veterinaria_crud.py --check</code>.</td><td>Conexión OK.</td><td><span class="badge ok">OK</span></td></tr>
+<tr><td>15</td><td>CRUD Python</td><td><code>python veterinaria_crud.py --demo</code>.</td><td>Alta, consulta, modificación y baja.</td><td><span class="badge ok">OK</span></td></tr></tbody></table>
+
+<h2>7.2 Estado final de la base</h2>
+<p>
+Tras la ejecución completa del script, el conteo de filas es el siguiente. La diferencia entre los datos
+insertados y el estado final se explica por la eliminación en cascada de la consulta 9 (prueba del
+borrado) y por el alta de la transacción confirmada en la sección 6.1.
+</p>
+<div class="tcap">Tabla 28. Conteo final de filas por tabla.</div><table class=""><thead><tr><th>Tabla</th><th>Filas</th><th>Observación</th></tr></thead><tbody><tr><td>especie</td><td>4</td><td>Perro, Gato, Conejo y Ave.</td></tr>
+<tr><td>raza</td><td>9</td><td>Razas distribuidas entre las cuatro especies.</td></tr>
+<tr><td>propietario</td><td>6</td><td>Cinco de prueba más el alta confirmada.</td></tr>
+<tr><td>mascota</td><td>9</td><td>Ocho de prueba más Chispita.</td></tr>
+<tr><td>veterinario</td><td>5</td><td>Uno sin consultas para probar LEFT JOIN.</td></tr>
+<tr><td>consulta</td><td>9</td><td>Diez de prueba menos la consulta eliminada.</td></tr>
+<tr><td>diagnostico</td><td>9</td><td>Uno por consulta; el de la consulta 9 se eliminó en cascada.</td></tr>
+<tr><td>tratamiento</td><td>11</td><td>Doce de prueba menos el de la consulta eliminada.</td></tr>
+<tr><td>vacunacion</td><td>8</td><td>Incluye una dosis próxima para la vista de pendientes.</td></tr>
+<tr><td>cirugia</td><td>4</td><td>Intervenciones de distintas mascotas.</td></tr>
+<tr><td>internacion</td><td>3</td><td>Una activa (sin fecha de egreso).</td></tr></tbody></table>
+
+<h2>7.3 Pruebas de permisos</h2>
+<div class="tcap">Tabla 29. Verificación de permisos por rol.</div><table class=""><thead><tr><th>Usuario</th><th>Operación</th><th>Esperado</th><th>Obtenido</th></tr></thead><tbody><tr><td>consulta_vet</td><td>SELECT sobre v_ficha_mascota</td><td>Permitido</td><td>9 filas</td></tr>
+<tr><td>consulta_vet</td><td>SELECT sobre propietario</td><td>Denegado</td><td>ERROR 1142</td></tr>
+<tr><td>recepcion_vet</td><td>INSERT en propietario</td><td>Permitido</td><td>1 fila</td></tr>
+<tr><td>recepcion_vet</td><td>DELETE en propietario</td><td>Denegado</td><td>ERROR 1142</td></tr>
+<tr><td>veterinario_vet</td><td>UPDATE en diagnostico</td><td>Permitido</td><td>1 fila</td></tr>
+<tr><td>veterinario_vet</td><td>DELETE en diagnostico</td><td>Denegado</td><td>ERROR 1142</td></tr>
+<tr><td>asistente_vet</td><td>INSERT en vacunacion</td><td>Permitido</td><td>1 fila</td></tr>
+<tr><td>admin_vet</td><td>ALL PRIVILEGES</td><td>Permitido</td><td>—</td></tr></tbody></table>
+
+<h2>7.4 Observaciones de la validación</h2>
+<ul>
+  <li>
+    <strong>ONLY_FULL_GROUP_BY:</strong> el script se ejecutó con el modo estricto completo. Todas las
+    consultas con agregaciones incluyen en el <code>GROUP BY</code> las columnas no agregadas, por lo que
+    no se producen errores de dependencia funcional.
+  </li>
+  <li>
+    <strong>CURDATE() en CHECK:</strong> MySQL rechaza las funciones no deterministas en restricciones
+    CHECK. La validación se resolvió con triggers, que sí pueden evaluar la fecha actual.
+  </li>
+  <li>
+    <strong>Relación 1:1:</strong> la restricción UNIQUE sobre <code>diagnostico.id_consulta</code>
+    impide cargar dos diagnósticos para la misma consulta; la prueba devolvió el error 1062.
+  </li>
+  <li>
+    <strong>Aislamiento:</strong> todas las pruebas se ejecutaron en una instancia temporal en el puerto
+    3307, sin modificar la base <code>veterinaria_db</code> utilizada en los TP anteriores.
+  </li>
+</ul>
+
+
+<h1 id="s8"><span class="num">8</span>Repositorio GitHub</h1>
+<p>
+Todos los artefactos se versionan en un repositorio público. La estructura separa el script SQL, la
+aplicación Python, los diagramas y la documentación, de modo que cualquier persona pueda clonar el
+proyecto y reproducir la base y el CRUD.
+</p>
+<div class="callout warn"><span class="t">Enlace del repositorio</span>El repositorio público está en <strong>github.com/NeruTrash/base-datos-integrador-veterinaria</strong>. Allí se versionan el script SQL, la aplicación Python, los diagramas y este documento.</div>
+<h2>8.1 Estructura del repositorio</h2>
+<pre class="tree">base-datos-integrador-veterinaria/
+|-- README.md
+|-- sql/
+|   +-- veterinaria_integrador.sql
+|-- python/
+|   |-- veterinaria_crud.py
+|   +-- requirements.txt
+|-- img/
+|   |-- modelo_conceptual_chen.png
+|   |-- modelo_conceptual_atributos.png
+|   |-- modelo_logico_pata_gallo.png
+|   +-- modelo_fisico_eer.png
++-- docs/
+    +-- TP_Integrador_Base_de_Datos.pdf</pre>
+
+<h2>8.2 Publicación</h2>
+<p>
+Los pasos previstos para publicar el repositorio son los siguientes. Se incluye un archivo
+<code>.gitignore</code> para excluir entornos virtuales, cachés y archivos locales de configuración.
+</p>
+<div class="ccap">Listado 15. Comandos para publicar el repositorio.</div><pre>git init
+git add .
+git commit -m "Proyecto integrador: base de datos, CRUD y documentacion"
+git branch -M main
+git remote add origin https://github.com/NeruTrash/base-datos-integrador-veterinaria.git
+git push -u origin main</pre>
+<div class="ccap">Listado 16. Contenido sugerido de .gitignore.</div><pre>__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.vscode/
+.idea/
+*.log</pre>
+<p>
+El repositorio debe incluir el PDF final y las imágenes PNG para que la documentación sea visible desde
+GitHub sin necesidad de compilar el HTML. El script SQL no contiene contraseñas reales: las cuentas
+creadas usan credenciales de ejemplo y están documentadas como tales.
+</p>
+
+
+<h1 id="s9"><span class="num">9</span>Retrospectiva y conclusiones</h1>
+
+<h2>9.1 Logros del proyecto</h2>
+<ul>
+  <li>Se modeló un dominio realista con once entidades y trece relaciones, sin redundancias.</li>
+  <li>Se normalizó hasta 3FN, eliminando una dependencia transitiva concreta entre mascota, raza y especie.</li>
+  <li>Se implementó un script SQL reproducible, con DDL, DCL, DML, vistas, triggers y transacciones.</li>
+  <li>Se construyó un CRUD en Python con transacciones atómicas sobre dos tablas relacionadas.</li>
+</ul>
+
+<h2>9.2 Dificultades y soluciones</h2>
+<div class="tcap">Tabla 30. Dificultades encontradas y solución aplicada.</div><table class=""><thead><tr><th>Dificultad</th><th>Solución</th></tr></thead><tbody><tr><td>MySQL no permite CURDATE() en CHECK.</td><td>Se implementaron triggers BEFORE INSERT y BEFORE UPDATE con SIGNAL SQLSTATE.</td></tr>
+<tr><td>El modo ONLY_FULL_GROUP_BY rechaza columnas no agregadas.</td><td>Se incluyeron todas las columnas de agrupación en el GROUP BY.</td></tr>
+<tr><td>La relación 1:1 podía convertirse en 1:N.</td><td>Se agregó UNIQUE sobre diagnostico.id_consulta.</td></tr>
+<tr><td>Riesgo de duplicar la especie en mascota.</td><td>Se eliminó id_especie y se deriva la especie desde la raza.</td></tr>
+<tr><td>El plugin caching_sha2_password requiere cifrado.</td><td>Se agregó cryptography a requirements.txt.</td></tr>
+<tr><td>No se disponía de la contraseña de root del MySQL local.</td><td>Se validó todo en una instancia temporal en el puerto 3307, sin tocar la base de los TP.</td></tr></tbody></table>
+
+<h2>9.3 Aprendizajes</h2>
+<p>
+El trabajo permitió comprender que el diseño de una base de datos no termina en el diagrama: las
+decisiones de integridad, los permisos y las transacciones son parte del modelo tanto como las tablas.
+La experiencia de ejecutar el script en una instancia limpia y de probar los errores esperados fue
+especialmente valiosa, porque obligó a distinguir entre un esquema que «compila» y un esquema que
+realmente protege los datos.
+</p>
+<p>
+También se verificó el valor de las vistas como contrato de lectura y como mecanismo de seguridad. El
+usuario de consulta pública no necesita conocer la estructura interna de las tablas: le alcanza con las
+cinco vistas para obtener la información que su rol requiere.
+</p>
+
+<h2>9.4 Trabajo futuro</h2>
+<ul>
+  <li>Incorporar una interfaz web o de escritorio para reemplazar el menú de consola.</li>
+  <li>Agregar módulos de turnos, facturación y stock de medicamentos.</li>
+  <li>Implementar procedimientos almacenados para las operaciones de alta coordinada.</li>
+</ul>
+
+<h2>9.5 Conclusión</h2>
+<p>
+El proyecto cumple los objetivos: modela y normaliza el dominio, lo implementa en MySQL con integridad
+referencial y lo expone mediante una capa de acceso en Python. La separación entre los modelos
+conceptual, lógico y físico permitió justificar cada decisión y mantener la coherencia entre diseño y
+código. La documentación y el repositorio completan la entrega y dejan una base sólida para las
+próximas etapas.
+</p>
+
+
+<h1 id="anexo"><span class="num">A</span>Anexo: ejecución y checklist</h1>
+
+<h2>A.1 Orden de ejecución</h2>
+<ol>
+  <li>Verificar que el servicio MySQL esté iniciado y que el puerto 3306 esté disponible.</li>
+  <li>Ejecutar el script SQL con un usuario con permisos de creación:
+    <pre>mysql -u root -p &lt; sql/veterinaria_integrador.sql</pre>
+  </li>
+  <li>Comprobar el conteo final de filas y la existencia de las cinco vistas.</li>
+  <li>Instalar las dependencias de Python:
+    <pre>pip install -r python/requirements.txt</pre>
+  </li>
+  <li>Configurar las variables de entorno si los valores por defecto no coinciden:
+    <pre>$env:VET_USER = "root"
+$env:VET_PASSWORD = "tu_contraseña"
+$env:VET_DB = "veterinaria_integrador"</pre>
+  </li>
+  <li>Verificar la conexión y ejecutar la demo:
+    <pre>python python/veterinaria_crud.py --check
+python python/veterinaria_crud.py --demo</pre>
+  </li>
+  <li>Para operar de forma interactiva:
+    <pre>python python/veterinaria_crud.py --menu</pre>
+  </li>
+</ol>
+
+<div class="callout warn"><span class="t">Advertencia sobre la ejecución</span>El script comienza con <code>DROP DATABASE IF EXISTS veterinaria_integrador</code>. Si se vuelve a ejecutar, se elimina y se recrea la base con los datos de prueba. No afecta a <code>veterinaria_db</code>, que pertenece a los TP anteriores.</div>
+
+<h2>A.2 Checklist de entrega</h2>
+<ul class="checklist">
+  <li>Script SQL completo y ejecutable sin errores.</li>
+  <li>Base poblada con datos coherentes y verificables.</li>
+  <li>DDL, DCL, DML, COMMIT, ROLLBACK y funciones nativas.</li>
+  <li>Cinco vistas y cinco usuarios con permisos diferenciados.</li>
+  <li>CRUD en Python con peewee sobre dos tablas relacionadas.</li>
+  <li>Diagrama de Chen, pata de gallo y modelo físico EER.</li>
+  <li>Diccionario de datos de las once tablas.</li>
+  <li>Documento PDF con portada, índice y conclusiones.</li>
+  <li>Repositorio público con SQL, PY, PDF y PNG.</li>
+  <li>Enlace de GitHub actualizado en la portada y en el README.</li>
+</ul>
+
+<h2>A.3 Reproducibilidad</h2>
+<p>
+Todos los artefactos se generan a partir de fuentes versionadas. El script SQL es la fuente de verdad
+del esquema; los diagramas se regeneran con Graphviz y el documento se compila desde HTML. Si se
+modifica una tabla, el orden recomendado es: actualizar el DDL, regenerar los diagramas, actualizar el
+diccionario y volver a imprimir el PDF.
+</p>
+<h2>A.4 Referencias</h2>
+<ul class="refs">
+  <li>Elmasri, R. y Navathe, S. (2016). <em>Fundamentos de sistemas de bases de datos</em> (7.ª ed.). Pearson.</li>
+  <li>Silberschatz, A., Korth, H. y Sudarshan, S. (2020). <em>Database system concepts</em> (7.ª ed.). McGraw-Hill.</li>
+  <li>Oracle Corporation. <em>MySQL 8.4 Reference Manual</em>. https://dev.mysql.com/doc/refman/8.4/en/</li>
+  <li>peewee ORM. <em>Documentation</em>. https://docs.peewee-orm.com/</li>
+  <li>Graphviz. <em>Documentation</em>. https://graphviz.org/documentation/</li>
+  <li>Python Software Foundation. <em>Python 3 Documentation</em>. https://docs.python.org/3/</li>
+</ul>
+<p class="small muted">
+Documento generado para la entrega del Proyecto Integrador de Base de Datos I · Ciclo lectivo 2026.
+</p>
+
+</body>
+</html>
